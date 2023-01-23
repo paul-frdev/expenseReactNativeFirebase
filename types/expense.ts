@@ -13,8 +13,8 @@ export enum ActionKind {
 }
 
 export interface ValuesProps {
-  currentId?: number;
-  id?: number;
+  currentId?: string;
+  id?: string;
   description: string;
   amount: number;
   date: Date;
@@ -22,7 +22,7 @@ export interface ValuesProps {
 
 
 export interface InputValuesProps {
-  id?: number;
+  id?: string;
   description?: string;
   amount: string;
   date: string;

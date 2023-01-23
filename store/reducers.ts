@@ -70,7 +70,8 @@ export const expenseReducer = (
       updatableExpenses[updatableExpenseIndex] = updatableItem;
       return updatableExpenses;
     case ActionKind.SET:
-      return action.payload;
+      const inverted = action.payload.reverse();
+      return inverted;
     default:
       return state;
   }

@@ -7,36 +7,48 @@ import { ActionKind, ValuesProps } from '../types/expense';
 import { RootStackParamListRoute } from '../types/navigation';
 
 import IconButton from '../components/UI/IconButton';
-import { storeExpense } from '../utils/http';
+import { deleteExpense, storeExpense, updateExpense } from '../utils/http';
+import { LoadingOverlay } from '../components/UI/LoadingOverLay';
 
 
 const ManageExpense = ({ route, navigation }: RootStackParamListRoute) => {
-  const { dispatch, state } = React.useContext(AppContext);
   const [editedId, setEditedId] = React.useState<any>();
+  const [loading, setLoading] = React.useState(false);
+
+  const { dispatch, state } = React.useContext(AppContext);
+
+  const isEditing = !!editedId;
 
   React.useEffect(() => {
     if (route.params) {
       setEditedId(route.params.expenseId);
     }
-  }, [route.params])
+  }, [route.params]);
 
-  const isEditing = !!editedId;
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      title: isEditing ? "Edit Expense" : "Add Expense"
+    })
+  }, [navigation, isEditing]);
 
   const selectedExpense = state.expenses.find((expense) => expense.id === editedId)
-    
-  const deleteExpenseHandler = () => {
-    dispatch({ type: ActionKind.DELETE, payload: { id: editedId } })
+
+  const deleteExpenseHandler = async () => {
+
+    dispatch({ type: ActionKind.DELETE, payload: { id: editedId } });
+    setLoading(true);
+    await deleteExpense(editedId);
     navigation.goBack();
+    setLoading(false);
   }
 
   const cancelHandler = () => {
     navigation.goBack();
   }
 
-  const confirmHandler = (expenseData: ValuesProps) => {
+  const confirmHandler = async (expenseData: ValuesProps) => {
+    setLoading(true);
     if (isEditing) {
-      console.log(editedId);
-      
       dispatch({
         type: ActionKind.UPDATE, payload: {
           currentId: editedId,
@@ -45,12 +57,14 @@ const ManageExpense = ({ route, navigation }: RootStackParamListRoute) => {
           amount: expenseData.amount,
           date: expenseData.date
         }
-      })
+      });
+      updateExpense(editedId, expenseData);
     } else {
-      storeExpense(expenseData);
+      const id = await storeExpense(expenseData);
+
       dispatch({
         type: ActionKind.ADD, payload: {
-          id: Math.round(Math.random() * 1000),
+          id,
           description: expenseData.description,
           amount: expenseData.amount,
           date: expenseData.date
@@ -60,11 +74,9 @@ const ManageExpense = ({ route, navigation }: RootStackParamListRoute) => {
     navigation.goBack();
   }
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      title: isEditing ? "Edit Expense" : "Add Expense"
-    })
-  }, [navigation, isEditing])
+  if (loading) {
+    return <LoadingOverlay />
+  }
 
   return (
     <View style={styles.container}>
