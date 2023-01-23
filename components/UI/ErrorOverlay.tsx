@@ -3,8 +3,8 @@ import { GlobalStyles } from '../../constants'
 import Button from './Button';
 
 interface Props {
-  message?: string;
-  onConfirm: () => void;
+  message: string;
+  onConfirm?: () => void;
 }
 export const ErrorOverlay = ({ message, onConfirm }: Props) => {
   return (

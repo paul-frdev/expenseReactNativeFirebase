@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import ExpensesOutput from '../components/expensesOutput/ExpensesOutput';
 import { ErrorOverlay } from '../components/UI/ErrorOverlay';
-import { LoadingOverlay } from '../components/UI/LoadingOverLay';
+import { LoadingOverlay } from '../components/UI/LoadingOverlay';
 import { AppContext } from '../store/AppContext';
 import { ActionKind, ExpenseType } from '../types/expense';
 import { getDateMinusDays } from '../utils/date';

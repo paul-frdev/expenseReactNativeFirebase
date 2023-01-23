@@ -8,12 +8,14 @@ import { RootStackParamListRoute } from '../types/navigation';
 
 import IconButton from '../components/UI/IconButton';
 import { deleteExpense, storeExpense, updateExpense } from '../utils/http';
-import { LoadingOverlay } from '../components/UI/LoadingOverLay';
+import { LoadingOverlay } from '../components/UI/LoadingOverlay';
+import { ErrorOverlay } from '../components/UI/ErrorOverlay';
 
 
 const ManageExpense = ({ route, navigation }: RootStackParamListRoute) => {
   const [editedId, setEditedId] = React.useState<any>();
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   const { dispatch, state } = React.useContext(AppContext);
 
@@ -37,9 +39,14 @@ const ManageExpense = ({ route, navigation }: RootStackParamListRoute) => {
 
     dispatch({ type: ActionKind.DELETE, payload: { id: editedId } });
     setLoading(true);
-    await deleteExpense(editedId);
-    navigation.goBack();
-    setLoading(false);
+    try {
+      await deleteExpense(editedId);
+      dispatch({ type: ActionKind.DELETE, payload: editedId });
+      navigation.goBack();
+    } catch (error) {
+      setError("Could not delete expense, please try again later")
+      setLoading(false);
+    }
   }
 
   const cancelHandler = () => {
@@ -48,30 +55,39 @@ const ManageExpense = ({ route, navigation }: RootStackParamListRoute) => {
 
   const confirmHandler = async (expenseData: ValuesProps) => {
     setLoading(true);
-    if (isEditing) {
-      dispatch({
-        type: ActionKind.UPDATE, payload: {
-          currentId: editedId,
-          id: editedId,
-          description: expenseData.description,
-          amount: expenseData.amount,
-          date: expenseData.date
-        }
-      });
-      updateExpense(editedId, expenseData);
-    } else {
-      const id = await storeExpense(expenseData);
+    try {
+      if (isEditing) {
+        dispatch({
+          type: ActionKind.UPDATE, payload: {
+            currentId: editedId,
+            id: editedId,
+            description: expenseData.description,
+            amount: expenseData.amount,
+            date: expenseData.date
+          }
+        });
+        updateExpense(editedId, expenseData);
+      } else {
+        const id = await storeExpense(expenseData);
 
-      dispatch({
-        type: ActionKind.ADD, payload: {
-          id,
-          description: expenseData.description,
-          amount: expenseData.amount,
-          date: expenseData.date
-        }
-      })
+        dispatch({
+          type: ActionKind.ADD, payload: {
+            id,
+            description: expenseData.description,
+            amount: expenseData.amount,
+            date: expenseData.date
+          }
+        })
+      }
+      navigation.goBack();
+    } catch (error) {
+      setError("Could not save data - please try again later");
+      setLoading(false);
     }
-    navigation.goBack();
+  }
+
+  if (error && !loading) {
+    return <ErrorOverlay message={error} />
   }
 
   if (loading) {
